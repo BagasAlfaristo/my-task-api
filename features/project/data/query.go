@@ -33,7 +33,7 @@ func (p *projectQuery) Insert(input project.Core) error {
 
 func (p *projectQuery) SelectAll(userid uint) ([]project.Core, error) {
 	var allProject []Project // var penampung data yg dibaca dari db
-	tx := p.db.Where("user_id = ?", userid).Find(&allProject)
+	tx := p.db.Where("user_id = ?", userid).Preload("Tasks").Find(&allProject)
 	if tx.Error != nil {
 		return nil, tx.Error
 	}

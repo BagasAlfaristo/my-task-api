@@ -1,0 +1,323 @@
+openapi: '3.0.2'
+info:
+  title: TodoList API
+  description: TodoList Project
+  termsOfService: http://example.com/terms/
+  contact:
+    name: API Support
+    url: http://www.example.com/support
+    email: support@example.com
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+  version: '1.0.0'
+servers:
+  # Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/iffakhry/alta-api/1.0.0
+    variables:
+      environment: 
+        default: dev
+        enum:
+          - "prod"
+          - "dev"
+tags:
+  - name: Users
+    description: User control
+  - name: Projects
+    description: Project control
+  - name: Tasks
+    description: Task control
+paths:
+  ####################################
+  #  USERS
+  ####################################
+  /users:
+    post:
+      tags:
+        - Users
+      summary: Register
+      description: Register User
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#features/user/handler/request'
+            examples:
+              userData1:
+                description: "Exampel data user"
+                value: {
+                  name: "Bagas",
+                  email: "Bagas.a.putra31@gmail.com",
+                  username: "BagasAlfaristo",
+                  password: "Secret123",
+                  phonnumber: "0813000"
+                }
+              # type: object
+              # properties:
+              #   name:
+              #     type: string
+              #     example: Bagas
+              #   email:
+              #     type: string
+              #     example: Bagas.a.putra31@gmail.com
+              #   username:
+              #     type: string
+              #     example: BagasAlfaristo
+              #   password:
+              #     type: string
+              #     example: Secret123
+              #   phonnumber:
+              #     type: string
+              #     example: 0813000
+      responses:
+        '200':
+          $ref: '#/components/responses/responseSuccess'
+        '400':
+          $ref: '#/components/responses/responseFailed'
+    put:
+      tags:
+        - Users
+      description: Edit user profile
+      security:
+        - JWTAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Bagas Alfaristo
+                email:
+                  type: string
+                  example: Bagas@gmail.com
+                username:
+                  type: string
+                  example: BagasNew
+                password:
+                  type: string
+                  example: inipasswordbaru
+                phonnumber:
+                  type: string
+                  example: 091287319
+      responses:
+        '200':
+          $ref: '#/components/responses/responseSuccess'
+        '400':
+          $ref: '#/components/responses/responseFailed'
+    delete:
+      tags:
+        - Users
+      description: Delete Current User
+      security:
+        - JWTAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/responseSuccess'
+        '400':
+          $ref: '#/components/responses/responseFailed'
+  /profile:
+    get:
+      tags:
+        - Users
+      description: Get Profile Current user
+      security:
+        - JWTAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/getUserProfileSuccess'
+        '400':
+          $ref: '#/components/responses/getUserProfileFailed'
+  /login:
+    post:
+      tags:
+        - Users
+      description: Login and gett JWT Token Current user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#features/user/handler/request'
+            examples:
+              userData1:
+                description: "Example data user"
+                value: {
+                  username: "Bagas",
+                  password: "inipassword"
+                }
+      responses:
+        '200':
+          $ref: '#/components/responses/getUserProfileSuccess'
+        '400':
+          $ref: '#/components/responses/getUserProfileFailed'
+
+  ####################################
+  #  Projects
+  ####################################
+  /projects:
+    post:
+      tags:
+        - Project
+      description: Insert new prpject
+      security:
+        - JWTAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userid:
+                  type: integer
+                  example: 1
+                projectname:
+                  type: string
+                  example: Mandi
+                description:
+                  type: string
+                  example: Mandi sore
+      responses:
+        '200':
+          $ref: '#/components/responses/responseSuccess'
+        '400':
+          $ref: '#/components/responses/responseFailed'
+    get:
+      tags:
+        - Peojects
+      description: Get all project
+      security:
+        - JWTAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/getAllBookSuccess'
+        '400':
+          $ref: '#/components/responses/getAllBookFailed'
+    delete:
+      tags:
+        - Peojects
+      description: Delete Current Project
+      security:
+        - JWTAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/responseSuccess'
+        '400':
+          $ref: '#/components/responses/responseFailed'
+  /projects/{id}:
+    put:
+      tags:
+        - Peojects
+      description: Edit project detail
+      security:
+        - JWTAuth: []
+      parameters:
+        - name: id
+          description: id project
+          in: path
+          schema:
+            type: integer
+            example: 1
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                projectname:
+                  type: string
+                  example: Makan
+                description:
+                  type: string
+                  example: Makan malam
+      responses:
+        '200':
+          $ref: '#/components/responses/responseSuccess'
+        '400':
+          $ref: '#/components/responses/responseFailed'
+
+  ####################################
+  #  TASKS
+  ####################################
+  /tasks:
+    post:
+      tags:
+        - Tasks
+      description: Insert new task
+      security:
+        - JWTAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                proectid:
+                  type: integer
+                  example: 1
+                userid:
+                  type: integer
+                  example: 1
+                taskname:
+                  type: string
+                  example: Mandi
+                status:
+                  type: string
+                  example: Not Completed
+      responses:
+        '200':
+          $ref: '#/components/responses/responseSuccess'
+        '400':
+          $ref: '#/components/responses/responseFailed'
+  /tasks/{id}:
+    put:
+      tags:
+        - Tasks
+      description: Edit tasks status
+      security:
+        - JWTAuth: []
+      parameters:
+        - name: id
+          description: id tasks
+          in: path
+          schema:
+            type: integer
+            example: 1
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: Completed
+      responses:
+        '200':
+          $ref: '#/components/responses/responseSuccess'
+        '400':
+          $ref: '#/components/responses/responseFailed'
+    delete:
+      tags:
+        - Tasks
+      description: Delete Tasks By ID
+      security:
+        - JWTAuth: []
+      parameters:
+        - name: id
+          description: id task
+          in: path
+          schema:
+            type: integer
+            example: 1
+          required: true
+      responses:
+        '200':
+          $ref: '#/components/responses/responseSuccess'
+        '400':
+          $ref: '#/components/responses/responseFailed'
