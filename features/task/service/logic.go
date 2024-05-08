@@ -26,25 +26,25 @@ func (p *taskService) Create(input task.Core) error {
 	return nil
 }
 
-func (p *taskService) GetAll(userid uint, projectid uint) ([]task.Core, error) {
-	if userid <= 0 {
+func (p *taskService) GetAll(projectid uint) ([]task.Core, error) {
+	if projectid <= 0 {
 		return nil, errors.New("[validation] id not valid")
 	}
-	return p.taskData.SelectAll(userid, projectid)
+	return p.taskData.SelectAll(projectid)
 }
 
-func (u *taskService) Delete(id uint, userid uint) error {
+func (u *taskService) Delete(id uint) error {
 	if id <= 0 {
 		return errors.New("id not valid")
 	}
-	return u.taskData.Delete(id, userid)
+	return u.taskData.Delete(id)
 }
 
-func (p *taskService) UpdateById(id uint, userid uint, input task.Core) error {
+func (p *taskService) UpdateById(id uint, input task.Core) error {
 	if id <= 0 {
 		return errors.New("id not valid")
 	}
-	err := p.taskData.PutById(id, userid, input)
+	err := p.taskData.PutById(id, input)
 	if err != nil {
 		return err
 	}

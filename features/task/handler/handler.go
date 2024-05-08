@@ -1,8 +1,6 @@
 package handler
 
 import (
-	"log"
-	"my-task-api/app/middlewares"
 	"my-task-api/features/task"
 	"net/http"
 	"strconv"
@@ -22,7 +20,7 @@ func New(ts task.ServiceInterface) *TaskHandler {
 
 func (ph *TaskHandler) Register(c echo.Context) error {
 	// membaca data dari request body
-	newProject := TaskRequest{}
+	newProject := TaskAddRequest{}
 	errBind := c.Bind(&newProject)
 	if errBind != nil {
 		return c.JSON(http.StatusBadRequest, map[string]any{
@@ -31,16 +29,15 @@ func (ph *TaskHandler) Register(c echo.Context) error {
 		})
 	}
 
-	idToken := middlewares.ExtractTokenUserId(c)
+	//idToken := middlewares.ExtractTokenUserId(c)
 	//hashedPassword := hashPassword(newUser.Password)
 	//newUser.Password = hashedPassword
 	// mapping  dari request ke core
+	Default := "Not Completed"
 	inputCore := task.Core{
-		ID:        newProject.ID,
-		UserID:    uint(idToken),
 		ProjectID: newProject.ProjectID,
 		TaskName:  newProject.TaskName,
-		Status:    newProject.Status,
+		Status:    Default,
 	}
 
 	// memanggil/mengirimkan data ke method service layer
@@ -67,9 +64,7 @@ func (uh *TaskHandler) GetAll(c echo.Context) error {
 		})
 	}
 
-	idToken := middlewares.ExtractTokenUserId(c)
-	log.Println("idtoken:", idToken)
-	result, err := uh.taskService.GetAll(uint(idToken), uint(idConv))
+	result, err := uh.taskService.GetAll(uint(idConv))
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]any{
 			"status":  "failed",
@@ -101,8 +96,7 @@ func (uh *TaskHandler) Delete(c echo.Context) error {
 		})
 	}
 
-	idToken := middlewares.ExtractTokenUserId(c)
-	err := uh.taskService.Delete(uint(idConv), uint(idToken))
+	err := uh.taskService.Delete(uint(idConv))
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]any{
 			"status":  "failed",
@@ -125,7 +119,6 @@ func (uh *TaskHandler) UpdateById(c echo.Context) error {
 		})
 	}
 
-	idToken := middlewares.ExtractTokenUserId(c)
 	updatedProject := TaskRequest{}
 	errBind := c.Bind(&updatedProject)
 	if errBind != nil {
@@ -140,7 +133,7 @@ func (uh *TaskHandler) UpdateById(c echo.Context) error {
 		Status: updatedProject.Status,
 	}
 
-	err := uh.taskService.UpdateById(uint(idConv), uint(idToken), inputNewCore)
+	err := uh.taskService.UpdateById(uint(idConv), inputNewCore)
 	if err != nil {
 		// Handle error from userService.UpdateById
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{

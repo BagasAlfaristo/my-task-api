@@ -4,6 +4,7 @@ import (
 	"log"
 	"my-task-api/app/middlewares"
 	"my-task-api/features/project"
+	"my-task-api/features/task/handler"
 	"net/http"
 	"strconv"
 
@@ -68,10 +69,19 @@ func (uh *ProjectHandler) GetAll(c echo.Context) error {
 	}
 	var allUsersResponse []ProjectResponse
 	for _, value := range result {
+		var allTaskResponse []handler.TaskResponse
+		for _, vtask := range value.Task {
+			allTaskResponse = append(allTaskResponse, handler.TaskResponse{
+				ID:       vtask.ID,
+				TaskName: vtask.TaskName,
+				Status:   vtask.Status,
+			})
+		}
 		allUsersResponse = append(allUsersResponse, ProjectResponse{
 			ID:          value.ID,
 			ProjectName: value.ProjectName,
 			Description: value.Description,
+			Task:        allTaskResponse,
 		})
 	}
 	return c.JSON(http.StatusOK, map[string]any{

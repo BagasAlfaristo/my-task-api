@@ -40,13 +40,24 @@ func (p *projectQuery) SelectAll(userid uint) ([]project.Core, error) {
 	//mapping
 	var allProjectCore []project.Core
 	for _, v := range allProject {
+		var allTaskCore []task.Core
+		for _, vtask := range v.Tasks {
+			allTaskCore = append(allTaskCore, task.Core{
+				ID:        vtask.ID,
+				ProjectID: vtask.ProjectID,
+				TaskName:  vtask.TaskName,
+				Status:    vtask.Status,
+				CreatedAt: vtask.CreatedAt,
+				UpdatedAt: vtask.UpdatedAt,
+			})
+		}
 		allProjectCore = append(allProjectCore, project.Core{
 			ID:          v.ID,
 			ProjectName: v.ProjectName,
 			Description: v.Description,
 			CreatedAt:   v.CreatedAt,
 			UpdatedAt:   v.UpdatedAt,
-			Task:        []task.Core{},
+			Task:        allTaskCore,
 		})
 	}
 	return allProjectCore, nil
