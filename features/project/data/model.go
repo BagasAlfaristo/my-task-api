@@ -1,7 +1,7 @@
 package data
 
 import (
-	"my-task-api/features/task/data"
+	_dataTask "my-task-api/features/task/data"
 
 	"gorm.io/gorm"
 )
@@ -11,5 +11,5 @@ type Project struct {
 	UserID      uint
 	ProjectName string
 	Description string
-	Tasks       []data.Task
+	Tasks       []_dataTask.Task
 }
