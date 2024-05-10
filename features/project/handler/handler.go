@@ -5,8 +5,10 @@ import (
 	"my-task-api/app/middlewares"
 	"my-task-api/features/project"
 	"my-task-api/features/task/handler"
+	"my-task-api/utils/responses"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 )
@@ -26,10 +28,7 @@ func (ph *ProjectHandler) Register(c echo.Context) error {
 	newProject := ProjectRequest{}
 	errBind := c.Bind(&newProject)
 	if errBind != nil {
-		return c.JSON(http.StatusBadRequest, map[string]any{
-			"status":  "failed",
-			"message": "error bind data: " + errBind.Error(),
-		})
+		return c.JSON(http.StatusBadRequest, responses.JSONWebResponse("error bind data: "+errBind.Error(), nil))
 	}
 
 	idToken := middlewares.ExtractTokenUserId(c)
@@ -46,15 +45,12 @@ func (ph *ProjectHandler) Register(c echo.Context) error {
 	// memanggil/mengirimkan data ke method service layer
 	errInsert := ph.projectService.Create(inputCore)
 	if errInsert != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]any{
-			"status":  "failed",
-			"message": "error insert data " + errInsert.Error(),
-		})
+		if strings.Contains(errInsert.Error(), "validation") {
+			return c.JSON(http.StatusBadRequest, responses.JSONWebResponse("error insert data: "+errInsert.Error(), nil))
+
+		}
 	}
-	return c.JSON(http.StatusCreated, map[string]any{
-		"status":  "success",
-		"message": "success add data",
-	})
+	return c.JSON(http.StatusInternalServerError, responses.JSONWebResponse("error insert data: "+errInsert.Error(), nil))
 }
 
 func (uh *ProjectHandler) GetAll(c echo.Context) error {
@@ -62,10 +58,7 @@ func (uh *ProjectHandler) GetAll(c echo.Context) error {
 	log.Println("idtoken:", idToken)
 	result, err := uh.projectService.GetAll(uint(idToken))
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]any{
-			"status":  "failed",
-			"message": "error read data",
-		})
+		return c.JSON(http.StatusInternalServerError, responses.JSONWebResponse("error read data", nil))
 	}
 	var allUsersResponse []ProjectResponse
 	for _, value := range result {
@@ -84,31 +77,21 @@ func (uh *ProjectHandler) GetAll(c echo.Context) error {
 			Task:        allTaskResponse,
 		})
 	}
-	return c.JSON(http.StatusOK, map[string]any{
-		"status":  "success",
-		"message": "success read data",
-		"results": allUsersResponse,
-	})
+	return c.JSON(http.StatusOK, responses.JSONWebResponse("success read data", allUsersResponse))
 }
 
 func (uh *ProjectHandler) UpdateById(c echo.Context) error {
 	id := c.Param("id")
 	idConv, errConv := strconv.Atoi(id)
 	if errConv != nil {
-		return c.JSON(http.StatusBadRequest, map[string]any{
-			"status":  "failed",
-			"message": "error convert id: " + errConv.Error(),
-		})
+		return c.JSON(http.StatusBadRequest, responses.JSONWebResponse("error get user id", idConv))
 	}
 
 	idToken := middlewares.ExtractTokenUserId(c)
 	updatedProject := ProjectRequest{}
 	errBind := c.Bind(&updatedProject)
 	if errBind != nil {
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"status":  "failed",
-			"message": "error bind data: " + errBind.Error(),
-		})
+		return c.JSON(http.StatusBadRequest, responses.JSONWebResponse("error bind data: "+errBind.Error(), nil))
 	}
 
 	// mapping  dari request ke core
@@ -120,39 +103,24 @@ func (uh *ProjectHandler) UpdateById(c echo.Context) error {
 	err := uh.projectService.UpdateById(uint(idConv), uint(idToken), inputNewCore)
 	if err != nil {
 		// Handle error from userService.UpdateById
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"status":  "failed",
-			"message": "error updating project by id: " + err.Error(),
-		})
+		return c.JSON(http.StatusInternalServerError, responses.JSONWebResponse("error update data", err))
 	}
 
 	// Return success response
-	return c.JSON(http.StatusOK, map[string]interface{}{
-		"status":  "success",
-		"message": "data updated successfully",
-	})
+	return c.JSON(http.StatusOK, responses.JSONWebResponse("success update data", err))
 }
 
 func (uh *ProjectHandler) Delete(c echo.Context) error {
 	id := c.Param("id")
 	idConv, errConv := strconv.Atoi(id)
 	if errConv != nil {
-		return c.JSON(http.StatusBadRequest, map[string]any{
-			"status":  "failed",
-			"message": "error convert id: " + errConv.Error(),
-		})
+		return c.JSON(http.StatusBadRequest, responses.JSONWebResponse("error get user id", idConv))
 	}
 
 	idToken := middlewares.ExtractTokenUserId(c)
 	err := uh.projectService.Delete(uint(idToken), uint(idConv))
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]any{
-			"status":  "failed",
-			"message": "error delete data " + err.Error(),
-		})
+		return c.JSON(http.StatusInternalServerError, responses.JSONWebResponse("error delete data", err))
 	}
-	return c.JSON(http.StatusOK, map[string]any{
-		"status":  "success",
-		"message": "success delete data",
-	})
+	return c.JSON(http.StatusOK, responses.JSONWebResponse("success delete data", err))
 }

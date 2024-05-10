@@ -1,8 +1,6 @@
 package data
 
 import (
-	_dataUser "my-task-api/features/user/data"
-
 	"gorm.io/gorm"
 )
 
@@ -12,5 +10,5 @@ type Task struct {
 	ProjectID uint
 	TaskName  string
 	Status    string
-	User      _dataUser.User
+	//User      _dataUser.User
 }

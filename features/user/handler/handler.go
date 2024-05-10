@@ -4,6 +4,7 @@ import (
 	"log"
 	"my-task-api/app/middlewares"
 	"my-task-api/features/user"
+	"my-task-api/utils/responses"
 
 	//user "my-task-api/features"
 	"net/http"
@@ -27,10 +28,7 @@ func (uh *UserHandler) Register(c echo.Context) error {
 	newUser := UserRequest{}
 	errBind := c.Bind(&newUser)
 	if errBind != nil {
-		return c.JSON(http.StatusBadRequest, map[string]any{
-			"status":  "failed",
-			"message": "error bind data: " + errBind.Error(),
-		})
+		return c.JSON(http.StatusBadRequest, responses.JSONWebResponse("error bind"+errBind.Error(), nil))
 	}
 
 	//hashedPassword := hashPassword(newUser.Password)
@@ -47,24 +45,15 @@ func (uh *UserHandler) Register(c echo.Context) error {
 	// memanggil/mengirimkan data ke method service layer
 	errInsert := uh.userService.Create(inputCore)
 	if errInsert != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]any{
-			"status":  "failed",
-			"message": "error insert data " + errInsert.Error(),
-		})
+		return c.JSON(http.StatusInternalServerError, responses.JSONWebResponse("error add data", errInsert))
 	}
-	return c.JSON(http.StatusCreated, map[string]any{
-		"status":  "success",
-		"message": "success add user",
-	})
+	return c.JSON(http.StatusCreated, responses.JSONWebResponse("success add data", errInsert))
 }
 
 func (uh *UserHandler) GetAll(c echo.Context) error {
 	result, err := uh.userService.GetAll()
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]any{
-			"status":  "failed",
-			"message": "error read data",
-		})
+		return c.JSON(http.StatusInternalServerError, responses.JSONWebResponse("error read data", result))
 	}
 	var allUsersResponse []UserResponse
 	for _, value := range result {
@@ -76,28 +65,18 @@ func (uh *UserHandler) GetAll(c echo.Context) error {
 			PhoneNumber: value.PhoneNumber,
 		})
 	}
-	return c.JSON(http.StatusOK, map[string]any{
-		"status":  "success",
-		"message": "success read data",
-		"results": allUsersResponse,
-	})
+	return c.JSON(http.StatusOK, responses.JSONWebResponse("success read data", allUsersResponse))
 }
 
 func (uh *UserHandler) Login(c echo.Context) error {
 	var reqLoginData = LoginRequest{}
 	errBind := c.Bind(&reqLoginData)
 	if errBind != nil {
-		return c.JSON(http.StatusBadRequest, map[string]any{
-			"status":  "failed",
-			"message": "error bind data: " + errBind.Error(),
-		})
+		return c.JSON(http.StatusBadRequest, responses.JSONWebResponse("error bind"+errBind.Error(), nil))
 	}
 	result, token, err := uh.userService.Login(reqLoginData.Username, reqLoginData.Password)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]any{
-			"status":  "failed",
-			"message": "error login " + err.Error(),
-		})
+		return c.JSON(http.StatusInternalServerError, responses.JSONWebResponse("error login", result))
 	}
 	//mapping
 	var resultResponse = map[string]any{
@@ -105,11 +84,7 @@ func (uh *UserHandler) Login(c echo.Context) error {
 		"name":  result.Name,
 		"token": token,
 	}
-	return c.JSON(http.StatusOK, map[string]any{
-		"status":  "success",
-		"message": "success login",
-		"data":    resultResponse,
-	})
+	return c.JSON(http.StatusOK, responses.JSONWebResponse("success login", resultResponse))
 }
 
 func (uh *UserHandler) Profile(c echo.Context) error {
@@ -118,21 +93,14 @@ func (uh *UserHandler) Profile(c echo.Context) error {
 	log.Println("idtoken:", idToken)
 	result, err := uh.userService.GetById(uint(idToken))
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]any{
-			"status":  "failed",
-			"message": "error login " + err.Error(),
-		})
+		return c.JSON(http.StatusInternalServerError, responses.JSONWebResponse("error get id", result))
 	}
 	resultResponse := UserResponse{
 		ID:    result.ID,
 		Name:  result.Name,
 		Email: result.Email,
 	}
-	return c.JSON(http.StatusOK, map[string]any{
-		"status":  "success",
-		"message": "success login",
-		"data":    resultResponse,
-	})
+	return c.JSON(http.StatusOK, responses.JSONWebResponse("success get profile", resultResponse))
 }
 
 func (uh *UserHandler) Delete(c echo.Context) error {
@@ -147,15 +115,9 @@ func (uh *UserHandler) Delete(c echo.Context) error {
 	// }
 	err := uh.userService.Delete(uint(idToken))
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]any{
-			"status":  "failed",
-			"message": "error delete data " + err.Error(),
-		})
+		return c.JSON(http.StatusInternalServerError, responses.JSONWebResponse("error delete data", err))
 	}
-	return c.JSON(http.StatusOK, map[string]any{
-		"status":  "success",
-		"message": "success delete user",
-	})
+	return c.JSON(http.StatusOK, responses.JSONWebResponse("success delete data", err))
 }
 
 func (uh *UserHandler) UpdateById(c echo.Context) error {
@@ -166,10 +128,7 @@ func (uh *UserHandler) UpdateById(c echo.Context) error {
 	updatedUser := UserRequest{}
 	errBind := c.Bind(&updatedUser)
 	if errBind != nil {
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"status":  "failed",
-			"message": "error bind data: " + errBind.Error(),
-		})
+		return c.JSON(http.StatusBadRequest, responses.JSONWebResponse("error bind"+errBind.Error(), nil))
 	}
 
 	// mapping  dari request ke core
@@ -184,15 +143,9 @@ func (uh *UserHandler) UpdateById(c echo.Context) error {
 	err := uh.userService.UpdateById(uint(idToken), inputNewCore)
 	if err != nil {
 		// Handle error from userService.UpdateById
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"status":  "failed",
-			"message": "error updating user by id: " + err.Error(),
-		})
+		return c.JSON(http.StatusInternalServerError, responses.JSONWebResponse("error update data", err))
 	}
 
 	// Return success response
-	return c.JSON(http.StatusOK, map[string]interface{}{
-		"status":  "success",
-		"message": "user updated successfully",
-	})
+	return c.JSON(http.StatusOK, responses.JSONWebResponse("success update data", err))
 }
